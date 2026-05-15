@@ -111,3 +111,5 @@ Express 4  +  TypeScript 5  +  SQLite (node:sqlite)
 React 18   +  Vite 5        +  React Router v6
 JWT  +  bcryptjs  +  qrcode  +  dotenv
 ```
+
+코드 다시 제시해야 되는 문제 1 가입할때 아이디말고 이름으로 가입
