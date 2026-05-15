@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 import db from '../db';
 
 const router = Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-prod';
+const JWT_SECRET = process.env.JWT_SECRET || 'MAIL_BOX_SECRET_KEY';
 
 // POST /api/auth/register
 router.post('/register', (req: Request, res: Response) => {

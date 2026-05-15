@@ -19,7 +19,9 @@ export default function SignupPage() {
       if (res.error) { setError(res.error); return; }
       localStorage.setItem('token', res.token);
       localStorage.setItem('username', res.username);
-      navigate('/');
+      const next = sessionStorage.getItem('loginNext') || '/';
+      sessionStorage.removeItem('loginNext');
+      navigate(next);
     } catch {
       setError('회원가입 중 오류가 발생했습니다.');
     } finally {
@@ -28,7 +30,7 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="auth-page">
+    <div className="auth-wrap">
       <div className="auth-card">
         <div className="auth-logo">✉️</div>
         <div className="auth-title">회원가입</div>
@@ -36,29 +38,17 @@ export default function SignupPage() {
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label className="form-label">아이디</label>
-            <input
-              className="form-input"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
-              placeholder="사용자 이름"
-              autoFocus
-            />
+            <input className="form-input" value={username} onChange={e => setUsername(e.target.value)} placeholder="사용자 이름" autoFocus />
           </div>
           <div className="form-group">
             <label className="form-label">비밀번호 (6자 이상)</label>
-            <input
-              className="form-input"
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="비밀번호"
-            />
+            <input className="form-input" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="비밀번호" />
           </div>
           <button className="btn btn-primary btn-full" type="submit" disabled={loading}>
             {loading ? '가입 중...' : '회원가입'}
           </button>
         </form>
-        <div className="text-center mt-16 text-muted">
+        <div className="auth-footer">
           이미 계정이 있으신가요? <Link to="/login">로그인</Link>
         </div>
       </div>

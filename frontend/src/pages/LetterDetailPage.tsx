@@ -1,25 +1,35 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { api, Letter, TodayStatus } from '../api';
+import TopBar from '../components/TopBar';
+
+function fmt(d: string) {
+  return new Date(d).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+}
 
 export default function LetterDetailPage() {
-  const { letter_id } = useParams<{ letter_id: string }>();
+  const { id, letter_id } = useParams<{ id: string; letter_id: string }>();
   const navigate = useNavigate();
-  const [letter, setLetter] = useState<Letter | null>(null);
-  const [status, setStatus] = useState<TodayStatus>({ sent_today: 0, opened_today: 0, can_open: 0 });
-  const [loading, setLoading] = useState(true);
+  const location = useLocation();
+
+  const [letter, setLetter] = useState<Letter | null>(location.state?.letter ?? null);
+  const [status, setStatus] = useState<TodayStatus>(
+    location.state?.status ?? { sent_today: 0, opened_today: 0, can_open: 0 }
+  );
+  const [loading, setLoading] = useState(!location.state?.letter);
   const [opening, setOpening] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    Promise.all([api.getInbox(), api.getTodayStatus()])
-      .then(([inbox, s]) => {
-        const found = inbox.find((l: Letter) => l.letter_id === Number(letter_id));
-        setLetter(found ?? null);
-        setStatus(s);
-      })
-      .finally(() => setLoading(false));
-  }, [letter_id]);
+    if (!letter) {
+      Promise.all([api.getInbox(), api.getTodayStatus()])
+        .then(([inbox, s]) => {
+          setLetter(inbox.find(l => l.letter_id === Number(letter_id)) ?? null);
+          setStatus(s);
+        })
+        .finally(() => setLoading(false));
+    }
+  }, [letter_id, letter]);
 
   async function handleOpen() {
     if (!letter) return;
@@ -27,12 +37,13 @@ export default function LetterDetailPage() {
     setError('');
     try {
       const res = await api.openLetter(letter.letter_id);
-      if (res.error) {
-        setError(res.error);
-        return;
-      }
+      if (res.error) { setError(res.error); return; }
       setLetter(res as Letter);
-      setStatus(prev => ({ ...prev, can_open: Math.max(0, prev.can_open - 1), opened_today: prev.opened_today + 1 }));
+      setStatus(prev => ({
+        ...prev,
+        can_open: Math.max(0, prev.can_open - 1),
+        opened_today: prev.opened_today + 1,
+      }));
     } catch {
       setError('편지를 여는 중 오류가 발생했습니다.');
     } finally {
@@ -40,78 +51,69 @@ export default function LetterDetailPage() {
     }
   }
 
-  function fmt(d: string) {
-    return new Date(d).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
-  }
-
-  if (loading) return <div className="text-muted">불러오는 중...</div>;
-  if (!letter) return (
-    <div>
-      <button className="btn btn-secondary btn-sm mb-16" onClick={() => navigate('/inbox')}>← 뒤로</button>
-      <div className="empty-state"><div className="empty-icon">❓</div><div>편지를 찾을 수 없어요</div></div>
-    </div>
-  );
+  const back = () => navigate(`/channel/${id}/inbox`);
 
   return (
-    <div>
-      <button className="btn btn-secondary btn-sm mb-16" onClick={() => navigate('/inbox')}>← 메일함으로</button>
-
-      <div className="page-header">
-        <h1 className="page-title">
-          {letter.status === 'opened' ? '💌 편지' : '🔒 열리지 않은 편지'}
-        </h1>
-        <p className="page-subtitle">{fmt(letter.created_at)} 도착</p>
-      </div>
-
-      {letter.status === 'opened' ? (
-        <>
-          <div className="letter-content">{letter.content}</div>
-          {letter.opened_at && (
-            <div className="text-muted mt-12">{fmt(letter.opened_at)} 열람</div>
-          )}
-        </>
-      ) : (
-        <>
-          <div className="letter-envelope">
-            <div className="letter-envelope-icon">
-              {status.can_open > 0 ? '📩' : '🔒'}
-            </div>
-            <div className="letter-envelope-text">
-              {status.can_open > 0 ? '지금 열 수 있어요!' : '아직 열 수 없어요'}
-            </div>
-            <div className="letter-envelope-sub">
-              {status.can_open > 0
-                ? `오늘 ${status.sent_today}개 보냄 · ${status.can_open}개 열 수 있음`
-                : status.sent_today > 0
-                  ? '오늘 열 수 있는 편지를 모두 열었어요. 더 보내면 더 열 수 있어요!'
-                  : '오늘 편지를 먼저 보내야 열 수 있어요'}
-            </div>
+    <div className="subpage-wrap">
+      <TopBar title={letter?.status === 'opened' ? '편지' : '잠긴 편지'} onBack={back} />
+      <div className="subpage-body">
+        {loading ? (
+          <div className="text-muted">불러오는 중...</div>
+        ) : !letter ? (
+          <div className="empty-state">
+            <div className="empty-icon">❓</div>
+            <div className="empty-text">편지를 찾을 수 없어요</div>
           </div>
-
-          {error && <div className="error-msg">{error}</div>}
-
-          {status.can_open > 0 ? (
-            <button
-              className="btn btn-primary btn-full"
-              onClick={handleOpen}
-              disabled={opening}
-            >
-              {opening ? '여는 중...' : '📬 편지 열기'}
-            </button>
-          ) : (
-            <div className="card text-center" style={{ padding: 24 }}>
-              <div style={{ fontSize: 20, marginBottom: 10 }}>✉️ 미션</div>
-              <div style={{ fontSize: 14, color: 'var(--muted)', marginBottom: 16 }}>
-                편지를 보내면 받은 편지를 하나 열 수 있어요!<br />
-                보낸 편지 1개 = 열 수 있는 편지 1개
+        ) : letter.status === 'opened' ? (
+          <>
+            <div className="receiver-card" style={{ marginBottom: 16 }}>
+              <div className="receiver-avatar">❓</div>
+              <div>
+                <div className="receiver-label">보낸 사람</div>
+                <div className="receiver-name">익명의 누군가</div>
               </div>
-              <button className="btn btn-primary" onClick={() => navigate('/write')}>
-                지금 편지 쓰기
-              </button>
             </div>
-          )}
-        </>
-      )}
+            <div className="letter-content-box">{letter.content}</div>
+            <div className="text-muted">
+              {fmt(letter.created_at)} 도착
+              {letter.opened_at && ` · ${fmt(letter.opened_at)} 열람`}
+            </div>
+          </>
+        ) : (
+          <>
+            <div style={{ textAlign: 'center', padding: '44px 20px 32px' }}>
+              <div style={{ fontSize: 72, marginBottom: 16 }}>
+                {status.can_open > 0 ? '📩' : '🔒'}
+              </div>
+              <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>
+                {status.can_open > 0 ? '지금 열 수 있어요!' : '아직 열 수 없어요'}
+              </div>
+              <div className="text-muted">
+                {status.can_open > 0
+                  ? `열람권 ${status.can_open}개 보유 중`
+                  : status.sent_today > 0
+                    ? '편지를 보내면 열람권이 생겨요'
+                    : '오늘 편지를 먼저 보내야 해요'}
+              </div>
+            </div>
+
+            {error && <div className="error-msg">{error}</div>}
+
+            {status.can_open > 0 ? (
+              <button className="btn btn-primary btn-full" onClick={handleOpen} disabled={opening}>
+                {opening ? '여는 중...' : '📬 편지 열기'}
+              </button>
+            ) : (
+              <button
+                className="btn btn-secondary btn-full"
+                onClick={() => navigate(`/channel/${id}/members`)}
+              >
+                편지 보내러 가기
+              </button>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
