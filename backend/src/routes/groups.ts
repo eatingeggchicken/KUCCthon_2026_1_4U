@@ -93,6 +93,31 @@ router.get('/', (req: AuthRequest, res: Response) => {
   res.json(groups);
 });
 
+// GET /api/groups/:group_id/members — 그룹 멤버 목록
+router.get('/:group_id/members', (req: AuthRequest, res: Response) => {
+  const group_id = Number(req.params.group_id);
+
+  const isMember = db
+    .prepare('SELECT 1 FROM group_member WHERE group_id = ? AND user_id = ?')
+    .get(group_id, req.user!.user_id);
+  if (!isMember) {
+    res.status(403).json({ error: 'Not a group member' });
+    return;
+  }
+
+  const members = db
+    .prepare(`
+      SELECT u.user_id, u.username, gm.joined_at
+      FROM group_member gm
+      JOIN user u ON u.user_id = gm.user_id
+      WHERE gm.group_id = ?
+      ORDER BY gm.joined_at ASC
+    `)
+    .all(group_id);
+
+  res.json(members);
+});
+
 // GET /api/groups/:invite_code/qr — QR코드 PNG 다운로드
 router.get('/:invite_code/qr', async (req: AuthRequest, res: Response) => {
   const { invite_code } = req.params;

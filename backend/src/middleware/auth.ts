@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-prod';
+const JWT_SECRET = process.env.JWT_SECRET || 'MAIL_BOX_SECRET_KEY';
 
 export interface AuthRequest extends Request {
   user?: { user_id: number; username: string };
