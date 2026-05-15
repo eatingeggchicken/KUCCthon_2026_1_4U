@@ -41,7 +41,6 @@ export default function ChannelJoinPage() {
       }
       if (res.group) {
         localStorage.setItem('currentChannelId', String(res.group.group_id));
-        // TODO: 백엔드 display_style 지원 후 nickname + display_style 함께 전달
         navigate(`/channel/${res.group.group_id}`);
       }
     } catch {
@@ -76,7 +75,6 @@ export default function ChannelJoinPage() {
 
           <div className="form-group">
             <label className="form-label">표시 방식</label>
-            {/* TODO: 백엔드 display_style 지원 후 연동 */}
             <label className="radio-option" style={displayStyle === 'nickname' ? { borderColor: 'var(--accent)', background: 'var(--accent-light)' } : {}}>
               <input type="radio" name="displayStyle" checked={displayStyle === 'nickname'} onChange={() => setDisplayStyle('nickname')} />
               <div className="radio-option-text">

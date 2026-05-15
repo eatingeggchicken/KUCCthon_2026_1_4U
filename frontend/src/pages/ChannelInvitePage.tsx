@@ -13,10 +13,9 @@ export default function ChannelInvitePage() {
 
   useEffect(() => {
     if (!group && id) {
-      api.getGroups().then(groups => {
-        const found = groups.find(g => g.group_id === Number(id));
-        if (found) setGroup(found);
-      });
+      api.getGroup(Number(id)).then(g => {
+        if (g && !(g as any).error) setGroup(g as Group);
+      }).catch(() => {});
     }
   }, [id, group]);
 
@@ -55,24 +54,21 @@ export default function ChannelInvitePage() {
           <div className="channel-card-desc">오늘 함께한 사람들에게 고마운 마음을 남겨보세요.</div>
         </div>
 
-        {/* 초대 코드 */}
         <div className="section-label">초대 코드</div>
         <div className="invite-code-box">
           <span className="invite-code-text">{group.invite_code}</span>
-          <button className="copy-btn" onClick={handleCopyCode}>
+          <button className="copy-btn" onClick={handleCopyCode} style={{ color: '#FDFAF3' }}>
             {copiedCode ? '✓' : '📋'}
           </button>
         </div>
         {copiedCode && <p className="text-muted mt-8" style={{ fontSize: 13 }}>코드가 복사되었어요!</p>}
 
-        {/* QR 코드 */}
         <div className="section-label" style={{ marginTop: 20 }}>QR 코드</div>
         <div className="qr-wrap">
           <img src={`/api/groups/${group.invite_code}/qr`} alt="QR코드" />
         </div>
         <p className="text-muted text-center" style={{ fontSize: 13, marginBottom: 20 }}>QR 코드를 스캔하면 바로 입장해요</p>
 
-        {/* 초대 링크 */}
         <div className="section-label">초대 링크</div>
         <div className="invite-row">
           <span className="invite-link">{inviteUrl}</span>

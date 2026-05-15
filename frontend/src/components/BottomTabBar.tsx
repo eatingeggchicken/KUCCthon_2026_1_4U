@@ -5,8 +5,8 @@ export default function BottomTabBar() {
 
   const tabs = [
     { to: `/channel/${channelId}`, end: true, icon: '🏠', label: '홈' },
-    { to: `/channel/${channelId}/inbox`, end: false, icon: '✉️', label: '받은편지함' },
-    { to: `/channel/${channelId}/outbox`, end: false, icon: '📤', label: '보낸편지함' },
+    { to: `/channel/${channelId}/letters`, end: false, icon: '💌', label: '편지함' },
+    { to: `/channel/${channelId}/write`, end: false, icon: '✏️', label: '편지쓰기' },
     { to: '/me', end: false, icon: '👤', label: '내정보' },
   ];
 

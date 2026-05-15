@@ -5,6 +5,7 @@ import './db';
 import authRouter from './routes/auth';
 import groupsRouter from './routes/groups';
 import lettersRouter from './routes/letters';
+import diaryRouter from './routes/diary';
 
 const app = express();
 
@@ -14,6 +15,7 @@ app.get('/health', (_, res) => res.json({ ok: true }));
 app.use('/api/auth', authRouter);
 app.use('/api/groups', groupsRouter);
 app.use('/api/letters', lettersRouter);
+app.use('/api/diary', diaryRouter);
 
 // 프로덕션: 빌드된 프론트엔드 서빙
 const frontendDist = path.join(__dirname, '..', '..', 'frontend', 'dist');

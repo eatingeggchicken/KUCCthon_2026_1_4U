@@ -76,6 +76,16 @@ export const api = {
       `${BASE}/letters/${letter_id}/open`,
       { method: 'POST', headers: headers() }
     ),
+
+  getDiary: (group_id: number) =>
+    req<DiaryEntry[]>(`${BASE}/diary?group_id=${group_id}`, { headers: headers() }),
+
+  createDiary: (group_id: number, content: string, mood: string) =>
+    req<{ diary_id?: number; error?: string }>(`${BASE}/diary`, {
+      method: 'POST',
+      headers: headers(),
+      body: JSON.stringify({ group_id, content, mood }),
+    }),
 };
 
 export interface Letter {
@@ -120,4 +130,12 @@ export interface TodayStatus {
   sent_today: number;
   opened_today: number;
   can_open: number;
+}
+
+export interface DiaryEntry {
+  diary_id: number;
+  group_id: number;
+  content: string;
+  mood: string;
+  created_at: string;
 }

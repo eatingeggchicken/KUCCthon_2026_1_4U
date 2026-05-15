@@ -22,12 +22,13 @@ export default function LetterDetailPage() {
 
   useEffect(() => {
     if (!letter) {
-      Promise.all([api.getInbox(), api.getTodayStatus()])
-        .then(([inbox, s]) => {
-          setLetter(inbox.find(l => l.letter_id === Number(letter_id)) ?? null);
-          setStatus(s);
-        })
-        .finally(() => setLoading(false));
+      Promise.all([
+        api.getInbox().catch(() => [] as Letter[]),
+        api.getTodayStatus().catch(() => ({ sent_today: 0, opened_today: 0, can_open: 0 })),
+      ]).then(([inbox, s]) => {
+        setLetter((inbox as Letter[]).find(l => l.letter_id === Number(letter_id)) ?? null);
+        setStatus(s as TodayStatus);
+      }).finally(() => setLoading(false));
     }
   }, [letter_id, letter]);
 
@@ -51,7 +52,7 @@ export default function LetterDetailPage() {
     }
   }
 
-  const back = () => navigate(`/channel/${id}/inbox`);
+  const back = () => navigate(`/channel/${id}/letters`);
 
   return (
     <div className="subpage-wrap">
@@ -67,7 +68,9 @@ export default function LetterDetailPage() {
         ) : letter.status === 'opened' ? (
           <>
             <div className="receiver-card" style={{ marginBottom: 16 }}>
-              <div className="receiver-avatar">🐰</div>
+              <div className="receiver-avatar">
+                {letter.sender_username ? '🐰' : '❓'}
+              </div>
               <div>
                 <div className="receiver-label">보낸 사람</div>
                 <div className="receiver-name">{letter.sender_username ?? '익명의 누군가'}</div>
@@ -106,7 +109,7 @@ export default function LetterDetailPage() {
             ) : (
               <button
                 className="btn btn-secondary btn-full"
-                onClick={() => navigate(`/channel/${id}/members`)}
+                onClick={() => navigate(`/channel/${id}/write`)}
               >
                 편지 보내러 가기
               </button>

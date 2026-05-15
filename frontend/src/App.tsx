@@ -9,13 +9,13 @@ import ChannelInvitePage from './pages/ChannelInvitePage';
 import ChannelJoinPage from './pages/ChannelJoinPage';
 
 import ChannelHomePage from './pages/ChannelHomePage';
-import InboxPage from './pages/InboxPage';
-import OutboxPage from './pages/OutboxPage';
+import LettersPage from './pages/LettersPage';
+import WriteLetterPage from './pages/WriteLetterPage';
 import MyInfoPage from './pages/MyInfoPage';
 
 import MembersPage from './pages/MembersPage';
-import WriteLetterPage from './pages/WriteLetterPage';
 import LetterDetailPage from './pages/LetterDetailPage';
+import DiaryPage from './pages/DiaryPage';
 
 export default function App() {
   return (
@@ -32,15 +32,19 @@ export default function App() {
         {/* 하단 탭 있는 채널 페이지 */}
         <Route element={<Layout />}>
           <Route path="/channel/:id" element={<ChannelHomePage />} />
-          <Route path="/channel/:id/inbox" element={<InboxPage />} />
-          <Route path="/channel/:id/outbox" element={<OutboxPage />} />
+          <Route path="/channel/:id/letters" element={<LettersPage />} />
+          <Route path="/channel/:id/write" element={<WriteLetterPage />} />
           <Route path="/me" element={<MyInfoPage />} />
         </Route>
 
         {/* 하단 탭 없는 서브 페이지 */}
         <Route path="/channel/:id/members" element={<MembersPage />} />
-        <Route path="/channel/:id/write" element={<WriteLetterPage />} />
+        <Route path="/channel/:id/diary" element={<DiaryPage />} />
         <Route path="/channel/:id/inbox/:letter_id" element={<LetterDetailPage />} />
+
+        {/* 구 경로 리다이렉트 */}
+        <Route path="/channel/:id/inbox" element={<Navigate to="../letters" relative="path" replace />} />
+        <Route path="/channel/:id/outbox" element={<Navigate to="../letters" relative="path" replace />} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
