@@ -16,18 +16,18 @@ export default function ChannelHomePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!groupId) return;
+    if (!groupId) { setLoading(false); return; }
     Promise.all([
-      api.getGroup(groupId),
-      api.getTodayStatus(),
-      api.getInbox(),
-      api.getOutbox(),
+      api.getGroup(groupId).catch(() => null),
+      api.getTodayStatus().catch(() => ({ sent_today: 0, opened_today: 0, can_open: 0 })),
+      api.getInbox().catch(() => []),
+      api.getOutbox().catch(() => []),
     ]).then(([g, s, inbox, outbox]) => {
-      setGroup(g.error ? null : g as Group);
-      setStatus(s);
+      setGroup(g && !(g as any).error ? g as Group : null);
+      setStatus(s as TodayStatus);
       setInboxCount((inbox as Letter[]).filter(l => l.group_id === groupId).length);
       setOutboxCount((outbox as OutboxLetter[]).filter(l => l.group_id === groupId).length);
-    }).catch(() => {}).finally(() => setLoading(false));
+    }).finally(() => setLoading(false));
   }, [groupId]);
 
   if (loading) return <div style={{ padding: 24 }} className="text-muted">불러오는 중...</div>;
