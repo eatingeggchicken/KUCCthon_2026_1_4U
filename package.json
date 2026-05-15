@@ -1,0 +1,8 @@
+{
+  "name": "kuccthon-2026",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "cd frontend && npm install && npm run build && cd ../backend && npm install && npm run build",
+    "start": "node backend/dist/app.js"
+  }
+}
