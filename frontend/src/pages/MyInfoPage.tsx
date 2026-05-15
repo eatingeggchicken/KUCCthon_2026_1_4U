@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { api, Group, TodayStatus } from '../api';
 import TopBar from '../components/TopBar';
 
 export default function MyInfoPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const username = localStorage.getItem('username') ?? '';
   const [groups, setGroups] = useState<Group[]>([]);
   const [status, setStatus] = useState<TodayStatus>({ sent_today: 0, opened_today: 0, can_open: 0 });
@@ -14,6 +15,9 @@ export default function MyInfoPage() {
   const [joinCode, setJoinCode] = useState('');
   const [joinError, setJoinError] = useState('');
   const [joining, setJoining] = useState(false);
+
+  // 다른 페이지에서 넘어온 에러 메시지 (예: 채널 없이 편지쓰기 진입)
+  const routeError = location.state?.error as string | undefined;
 
   useEffect(() => {
     Promise.all([
@@ -71,6 +75,10 @@ export default function MyInfoPage() {
           <span className="my-badge">채널 닉네임으로 참여 중</span>
         </div>
 
+        {routeError && (
+          <div className="error-msg" style={{ marginBottom: 16 }}>{routeError}</div>
+        )}
+
         {!loading && (
           <div className="stats-row mb-24">
             <div className="stat-card">
@@ -88,20 +96,24 @@ export default function MyInfoPage() {
           </div>
         )}
 
-        {/* 채널 추가 */}
+        {/* 채널 추가 / 만들기 */}
         <div className="card mb-16">
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: showJoinForm ? 12 : 0 }}>
-            <div className="section-label" style={{ marginBottom: 0 }}>채널 추가</div>
+          <div className="section-label" style={{ marginBottom: 12 }}>채널</div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: showJoinForm ? 14 : 0 }}>
             <button
-              onClick={() => { setShowJoinForm(v => !v); setJoinError(''); setJoinCode(''); }}
-              style={{
-                border: 'none', background: showJoinForm ? '#EDE8D8' : 'var(--accent)',
-                color: showJoinForm ? 'var(--muted)' : '#FDFAF3',
-                borderRadius: 8, padding: '4px 12px', fontSize: 13,
-                fontFamily: 'Nunito, sans-serif', fontWeight: 600, cursor: 'pointer',
-              }}
+              className="btn btn-primary"
+              style={{ padding: '12px 0', fontSize: 14 }}
+              onClick={() => navigate('/create-channel')}
             >
-              {showJoinForm ? '취소' : '+ 참여하기'}
+              ＋ 채널 만들기
+            </button>
+            <button
+              className={`btn ${showJoinForm ? 'btn-secondary' : 'btn-secondary'}`}
+              style={{ padding: '12px 0', fontSize: 14 }}
+              onClick={() => { setShowJoinForm(v => !v); setJoinError(''); setJoinCode(''); }}
+            >
+              {showJoinForm ? '취소' : '🔑 코드 입력'}
             </button>
           </div>
 
@@ -131,7 +143,7 @@ export default function MyInfoPage() {
           )}
         </div>
 
-        {/* 참여 중인 채널 */}
+        {/* 참여 중인 채널 목록 */}
         <div className="card mb-16">
           <div className="section-label" style={{ marginBottom: 4 }}>참여 중인 채널</div>
           {loading ? (

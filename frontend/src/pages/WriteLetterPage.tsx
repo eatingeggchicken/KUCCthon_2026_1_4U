@@ -34,6 +34,10 @@ export default function WriteLetterPage() {
 
   useEffect(() => {
     if (!localStorage.getItem('token')) { navigate('/login'); return; }
+    if (!groupId) {
+      navigate('/me', { state: { error: '참여 중인 채널이 없어요. 채널을 추가해주세요.' } });
+      return;
+    }
     if (step === 'select') {
       setMembersLoading(true);
       api.getGroupMembers(groupId)
