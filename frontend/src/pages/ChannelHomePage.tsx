@@ -16,23 +16,33 @@ export default function ChannelHomePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!groupId) return;
     Promise.all([
-      api.getGroups(),
+      api.getGroup(groupId),
       api.getTodayStatus(),
       api.getInbox(),
       api.getOutbox(),
-    ]).then(([groups, s, inbox, outbox]) => {
-      const found = groups.find(g => g.group_id === groupId);
-      setGroup(found ?? null);
+    ]).then(([g, s, inbox, outbox]) => {
+      setGroup(g.error ? null : g as Group);
       setStatus(s);
-      // 채널 기준 필터 (group_id)
       setInboxCount((inbox as Letter[]).filter(l => l.group_id === groupId).length);
       setOutboxCount((outbox as OutboxLetter[]).filter(l => l.group_id === groupId).length);
-    }).finally(() => setLoading(false));
+    }).catch(() => {}).finally(() => setLoading(false));
   }, [groupId]);
 
-  if (loading) return <div className="text-muted">불러오는 중...</div>;
-  if (!group) return <div className="text-muted">채널을 찾을 수 없어요.</div>;
+  if (loading) return <div style={{ padding: 24 }} className="text-muted">불러오는 중...</div>;
+  if (!group) return (
+    <div style={{ padding: 32, textAlign: 'center' }}>
+      <div style={{ fontSize: 48, marginBottom: 12 }}>😕</div>
+      <div style={{ fontWeight: 600, marginBottom: 8 }}>채널을 찾을 수 없어요</div>
+      <div className="text-muted" style={{ marginBottom: 24, fontSize: 14 }}>
+        채널이 삭제됐거나 접근 권한이 없어요
+      </div>
+      <button className="btn btn-primary" onClick={() => navigate('/me')}>
+        내 채널 목록으로
+      </button>
+    </div>
+  );
 
   return (
     <div>
