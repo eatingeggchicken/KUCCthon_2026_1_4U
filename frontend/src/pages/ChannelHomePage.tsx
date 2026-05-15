@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { api, Group, Letter, OutboxLetter, TodayStatus } from '../api';
+import { api, Group, Letter, TodayStatus } from '../api';
 import TopBar from '../components/TopBar';
 
 function toDateStr(isoStr: string) {
@@ -19,7 +19,6 @@ export default function ChannelHomePage() {
   const [group, setGroup] = useState<Group | null>(null);
   const [status, setStatus] = useState<TodayStatus>({ sent_today: 0, opened_today: 0, can_open: 0 });
   const [inbox, setInbox] = useState<Letter[]>([]);
-  const [outboxCount, setOutboxCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const [currentMonth, setCurrentMonth] = useState(() => new Date());
@@ -31,12 +30,10 @@ export default function ChannelHomePage() {
       api.getGroup(groupId).catch(() => null),
       api.getTodayStatus().catch(() => ({ sent_today: 0, opened_today: 0, can_open: 0 })),
       api.getInbox().catch(() => [] as Letter[]),
-      api.getOutbox().catch(() => [] as OutboxLetter[]),
-    ]).then(([g, s, inboxAll, outbox]) => {
+    ]).then(([g, s, inboxAll]) => {
       setGroup(g && !(g as any).error ? g as Group : null);
       setStatus(s as TodayStatus);
       setInbox((inboxAll as Letter[]).filter(l => l.group_id === groupId));
-      setOutboxCount((outbox as OutboxLetter[]).filter(l => l.group_id === groupId).length);
     }).finally(() => setLoading(false));
   }, [groupId]);
 
@@ -131,24 +128,6 @@ export default function ChannelHomePage() {
           <div className="home-greeting-text">
             <h2>안녕하세요, {username}님! 👋</h2>
             <p>오늘도 감사 가득한 하루 되세요!</p>
-          </div>
-        </div>
-
-        {/* 빠른 실행 버튼 */}
-        <div className="home-actions" style={{ marginBottom: 28 }}>
-          <button className="home-action-btn primary" onClick={() => navigate(`/channel/${id}/write`)}>
-            <span className="home-action-icon">✈️</span>
-            편지 보내기
-          </button>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-            <button className="home-action-btn secondary" onClick={() => navigate(`/channel/${id}/members`)}>
-              <span className="home-action-icon">👥</span>
-              멤버 목록
-            </button>
-            <button className="home-action-btn secondary" onClick={() => navigate(`/channel/${id}/diary`)}>
-              <span className="home-action-icon">📔</span>
-              감사 일기
-            </button>
           </div>
         </div>
 

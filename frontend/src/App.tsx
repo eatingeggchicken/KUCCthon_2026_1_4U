@@ -15,7 +15,6 @@ import MyInfoPage from './pages/MyInfoPage';
 
 import MembersPage from './pages/MembersPage';
 import LetterDetailPage from './pages/LetterDetailPage';
-import DiaryPage from './pages/DiaryPage';
 
 export default function App() {
   return (
@@ -39,7 +38,6 @@ export default function App() {
 
         {/* 하단 탭 없는 서브 페이지 */}
         <Route path="/channel/:id/members" element={<MembersPage />} />
-        <Route path="/channel/:id/diary" element={<DiaryPage />} />
         <Route path="/channel/:id/inbox/:letter_id" element={<LetterDetailPage />} />
 
         {/* 구 경로 리다이렉트 */}

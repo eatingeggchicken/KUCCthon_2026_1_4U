@@ -10,6 +10,11 @@ export default function MyInfoPage() {
   const [status, setStatus] = useState<TodayStatus>({ sent_today: 0, opened_today: 0, can_open: 0 });
   const [loading, setLoading] = useState(true);
 
+  const [showJoinForm, setShowJoinForm] = useState(false);
+  const [joinCode, setJoinCode] = useState('');
+  const [joinError, setJoinError] = useState('');
+  const [joining, setJoining] = useState(false);
+
   useEffect(() => {
     Promise.all([
       api.getGroups().catch(() => [] as Group[]),
@@ -19,6 +24,34 @@ export default function MyInfoPage() {
       setStatus(s as TodayStatus);
     }).finally(() => setLoading(false));
   }, []);
+
+  async function handleJoin(e: React.FormEvent) {
+    e.preventDefault();
+    const code = joinCode.trim().toUpperCase();
+    if (!code) return;
+    setJoinError('');
+    setJoining(true);
+    try {
+      const res = await api.joinGroup(code);
+      if (res.error) {
+        if (res.error === 'Already a member' && res.group) {
+          localStorage.setItem('currentChannelId', String(res.group.group_id));
+          navigate(`/channel/${res.group.group_id}`);
+          return;
+        }
+        setJoinError(res.error);
+        return;
+      }
+      if (res.group) {
+        localStorage.setItem('currentChannelId', String(res.group.group_id));
+        navigate(`/channel/${res.group.group_id}`);
+      }
+    } catch {
+      setJoinError('참여 중 오류가 발생했습니다.');
+    } finally {
+      setJoining(false);
+    }
+  }
 
   function logout() {
     localStorage.removeItem('token');
@@ -55,6 +88,50 @@ export default function MyInfoPage() {
           </div>
         )}
 
+        {/* 채널 추가 */}
+        <div className="card mb-16">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: showJoinForm ? 12 : 0 }}>
+            <div className="section-label" style={{ marginBottom: 0 }}>채널 추가</div>
+            <button
+              onClick={() => { setShowJoinForm(v => !v); setJoinError(''); setJoinCode(''); }}
+              style={{
+                border: 'none', background: showJoinForm ? '#EDE8D8' : 'var(--accent)',
+                color: showJoinForm ? 'var(--muted)' : '#FDFAF3',
+                borderRadius: 8, padding: '4px 12px', fontSize: 13,
+                fontFamily: 'Nunito, sans-serif', fontWeight: 600, cursor: 'pointer',
+              }}
+            >
+              {showJoinForm ? '취소' : '+ 참여하기'}
+            </button>
+          </div>
+
+          {showJoinForm && (
+            <>
+              {joinError && <div className="error-msg">{joinError}</div>}
+              <form onSubmit={handleJoin} style={{ display: 'flex', gap: 8 }}>
+                <input
+                  className="form-input"
+                  value={joinCode}
+                  onChange={e => setJoinCode(e.target.value.toUpperCase())}
+                  placeholder="초대 코드 입력"
+                  maxLength={8}
+                  autoFocus
+                  style={{ fontFamily: 'monospace', letterSpacing: 2, flex: 1 }}
+                />
+                <button
+                  className="btn btn-primary"
+                  type="submit"
+                  disabled={joining || !joinCode.trim()}
+                  style={{ whiteSpace: 'nowrap', padding: '12px 16px' }}
+                >
+                  {joining ? '...' : '입장'}
+                </button>
+              </form>
+            </>
+          )}
+        </div>
+
+        {/* 참여 중인 채널 */}
         <div className="card mb-16">
           <div className="section-label" style={{ marginBottom: 4 }}>참여 중인 채널</div>
           {loading ? (
