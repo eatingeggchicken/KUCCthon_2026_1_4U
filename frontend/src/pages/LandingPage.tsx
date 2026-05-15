@@ -35,7 +35,7 @@ export default function LandingPage() {
   return (
     <div className="landing-wrap">
       <img src="/icon/logo.png" alt="고마움 우체통 로고" className="landing-logo-img" />
-      <h1 className="landing-title">고마움 우체통</h1>
+      <h1 className="landing-title">오고 가고</h1>
       <p className="landing-desc">
         감사는 받을 때보다 보낼 때 더 커져요.<br />
         같은 채널의 사람들에게 익명 또는 실명으로<br />
