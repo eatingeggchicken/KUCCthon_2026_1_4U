@@ -7,6 +7,12 @@ export default function LandingPage() {
   const [code, setCode] = useState('');
 
   const isLoggedIn = !!localStorage.getItem('token');
+
+  if (isLoggedIn) {
+    navigate('/me', { replace: true });
+    return null;
+  }
+
   const currentChannelId = localStorage.getItem('currentChannelId');
 
   function handleCreate() {

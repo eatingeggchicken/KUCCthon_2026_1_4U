@@ -67,7 +67,9 @@ export default function OutboxPage() {
                     </div>
                     <div className="letter-right">
                       <span className="letter-time">{fmt(l.created_at)}</span>
-                      {/* TODO: is_anonymous 추가 시 실명/익명 배지 표시 */}
+                      <span className={`badge ${l.is_anonymous ? 'badge-anon' : 'badge-real'}`}>
+                        {l.is_anonymous ? '익명' : '실명'}
+                      </span>
                       <span className={`badge ${l.status === 'opened' ? 'badge-opened' : 'badge-pending'}`}>
                         {l.status === 'opened' ? '열람됨' : '미열람'}
                       </span>

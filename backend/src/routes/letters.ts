@@ -5,10 +5,10 @@ import db from '../db';
 const router = Router();
 router.use(authenticate);
 
-// POST /api/letters/groups/:group_id — 편지 보내기 (익명)
+// POST /api/letters/groups/:group_id — 편지 보내기
 router.post('/groups/:group_id', (req: AuthRequest, res: Response) => {
   const group_id = Number(req.params.group_id);
-  const { receiver_id, content } = req.body;
+  const { receiver_id, content, is_anonymous = 1 } = req.body;
 
   if (!receiver_id || !content?.trim()) {
     res.status(400).json({ error: 'receiver_id and content required' });
@@ -33,28 +33,30 @@ router.post('/groups/:group_id', (req: AuthRequest, res: Response) => {
 
   const result = db
     .prepare(`
-      INSERT INTO letter (group_id, sender_id, receiver_id, content, open_at)
-      VALUES (?, ?, ?, ?, datetime('now'))
+      INSERT INTO letter (group_id, sender_id, receiver_id, content, is_anonymous, open_at)
+      VALUES (?, ?, ?, ?, ?, datetime('now'))
     `)
-    .run(group_id, req.user!.user_id, Number(receiver_id), content.trim()) as {
+    .run(group_id, req.user!.user_id, Number(receiver_id), content.trim(), is_anonymous ? 1 : 0) as {
     lastInsertRowid: number;
   };
 
   res.status(201).json({ letter_id: result.lastInsertRowid });
 });
 
-// GET /api/letters/inbox — 받은 편지함 (sender 익명)
+// GET /api/letters/inbox — 받은 편지함
 router.get('/inbox', (req: AuthRequest, res: Response) => {
   const letters = db
     .prepare(`
-      SELECT letter_id, group_id, content, created_at, opened_at, status
-      FROM letter
-      WHERE receiver_id = ?
-      ORDER BY created_at DESC
+      SELECT l.letter_id, l.group_id, l.content, l.created_at, l.opened_at, l.status,
+             l.is_anonymous,
+             CASE WHEN l.is_anonymous = 0 OR l.status = 'opened' THEN u.username ELSE NULL END AS sender_username
+      FROM letter l
+      JOIN user u ON u.user_id = l.sender_id
+      WHERE l.receiver_id = ?
+      ORDER BY l.created_at DESC
     `)
     .all(req.user!.user_id);
 
-  // 열리지 않은 편지는 내용 숨김
   const result = (letters as any[]).map((l) => ({
     letter_id: l.letter_id,
     group_id: l.group_id,
@@ -62,6 +64,8 @@ router.get('/inbox', (req: AuthRequest, res: Response) => {
     created_at: l.created_at,
     opened_at: l.opened_at,
     status: l.status,
+    is_anonymous: !!l.is_anonymous,
+    sender_username: l.sender_username ?? undefined,
   }));
 
   res.json(result);
@@ -72,7 +76,7 @@ router.get('/outbox', (req: AuthRequest, res: Response) => {
   const letters = db
     .prepare(`
       SELECT l.letter_id, l.group_id, l.receiver_id, u.username as receiver_username,
-             l.content, l.created_at, l.open_at, l.opened_at, l.status
+             l.content, l.created_at, l.open_at, l.opened_at, l.status, l.is_anonymous
       FROM letter l
       JOIN user u ON u.user_id = l.receiver_id
       WHERE l.sender_id = ?
@@ -80,7 +84,7 @@ router.get('/outbox', (req: AuthRequest, res: Response) => {
     `)
     .all(req.user!.user_id);
 
-  res.json(letters);
+  res.json((letters as any[]).map(l => ({ ...l, is_anonymous: !!l.is_anonymous })));
 });
 
 // GET /api/letters/today-status — 오늘 발송/열기 현황
@@ -127,7 +131,6 @@ router.post('/:letter_id/open', (req: AuthRequest, res: Response) => {
     return;
   }
 
-  // 오늘 보낸 편지 수만큼만 열 수 있음
   const { cnt: sent_today } = db
     .prepare(
       `SELECT COUNT(*) as cnt FROM letter WHERE sender_id = ? AND DATE(created_at) = DATE('now')`
@@ -141,11 +144,7 @@ router.post('/:letter_id/open', (req: AuthRequest, res: Response) => {
     .get(req.user!.user_id) as { cnt: number };
 
   if (sent_today === 0) {
-    res.status(403).json({
-      error: 'Write a letter today to open one',
-      sent_today,
-      can_open: 0,
-    });
+    res.status(403).json({ error: 'Write a letter today to open one', sent_today, can_open: 0 });
     return;
   }
 
@@ -163,11 +162,17 @@ router.post('/:letter_id/open', (req: AuthRequest, res: Response) => {
     `UPDATE letter SET status = 'opened', opened_at = datetime('now') WHERE letter_id = ?`
   ).run(letter_id);
 
-  const updated = db.prepare('SELECT * FROM letter WHERE letter_id = ?').get(letter_id) as any;
+  const updated = db
+    .prepare(`
+      SELECT l.letter_id, l.group_id, l.content, l.created_at, l.opened_at, l.status,
+             l.is_anonymous, u.username AS sender_username
+      FROM letter l
+      JOIN user u ON u.user_id = l.sender_id
+      WHERE l.letter_id = ?
+    `)
+    .get(letter_id) as any;
 
-  // 익명: sender_id 제거
-  const { sender_id: _, ...response } = updated;
-  res.json(response);
+  res.json({ ...updated, is_anonymous: !!updated.is_anonymous, sender_username: updated.sender_username ?? undefined });
 });
 
 export default router;

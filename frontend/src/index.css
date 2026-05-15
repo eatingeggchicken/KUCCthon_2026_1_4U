@@ -626,6 +626,29 @@ a:hover { text-decoration: underline; }
   color: var(--muted);
 }
 
+/* ── Invite code box ─────────────────────────────────── */
+.invite-code-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--accent);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 8px;
+}
+.invite-code-text {
+  font-family: monospace;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: 6px;
+  color: #fff;
+}
+.invite-code-box .copy-btn {
+  color: #fff;
+  font-size: 20px;
+}
+.invite-code-box .copy-btn:hover { background: rgba(255,255,255,0.15); }
+
 /* ── Invite link box ─────────────────────────────────── */
 .invite-row {
   display: flex;

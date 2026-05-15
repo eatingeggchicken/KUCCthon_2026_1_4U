@@ -26,8 +26,7 @@ export default function WriteLetterPage() {
     if (!content.trim()) { setError('내용을 입력하세요.'); return; }
     setLoading(true);
     try {
-      // TODO: is_anonymous 백엔드 지원 시 함께 전달
-      const res = await api.sendLetter(groupId, receiverId, content.trim());
+      const res = await api.sendLetter(groupId, receiverId, content.trim(), isAnonymous);
       if (res.error) { setError(res.error); return; }
       navigate(`/channel/${id}/inbox`);
     } catch {

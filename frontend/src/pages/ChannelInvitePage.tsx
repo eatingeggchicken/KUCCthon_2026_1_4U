@@ -8,7 +8,8 @@ export default function ChannelInvitePage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [group, setGroup] = useState<Group | null>(location.state?.group ?? null);
-  const [copied, setCopied] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   useEffect(() => {
     if (!group && id) {
@@ -30,10 +31,16 @@ export default function ChannelInvitePage() {
 
   const inviteUrl = `${window.location.origin}/join/${group.invite_code}`;
 
-  function handleCopy() {
+  function handleCopyCode() {
+    navigator.clipboard.writeText(group!.invite_code);
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 2000);
+  }
+
+  function handleCopyLink() {
     navigator.clipboard.writeText(inviteUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2000);
   }
 
   return (
@@ -41,29 +48,42 @@ export default function ChannelInvitePage() {
       <TopBar title="" onBack={true} />
       <div className="subpage-body">
         <h1 className="page-title" style={{ marginBottom: 6 }}>채널이 생성되었어요!</h1>
-        <p className="page-subtitle">초대 링크를 공유하고 함께 감사를 나눠보세요.</p>
+        <p className="page-subtitle">초대 코드나 링크를 공유해보세요.</p>
 
         <div className="channel-card">
           <div className="channel-card-name">{group.group_name}</div>
           <div className="channel-card-desc">오늘 함께한 사람들에게 고마운 마음을 남겨보세요.</div>
         </div>
 
-        <div className="section-label">초대 링크</div>
-        <div className="invite-row">
-          <span className="invite-link">{inviteUrl}</span>
-          <button className="copy-btn" onClick={handleCopy} title="복사">
-            {copied ? '✓' : '📋'}
+        {/* 초대 코드 */}
+        <div className="section-label">초대 코드</div>
+        <div className="invite-code-box">
+          <span className="invite-code-text">{group.invite_code}</span>
+          <button className="copy-btn" onClick={handleCopyCode}>
+            {copiedCode ? '✓' : '📋'}
           </button>
         </div>
-        {copied && <p className="text-muted mt-8">링크가 복사되었어요!</p>}
+        {copiedCode && <p className="text-muted mt-8" style={{ fontSize: 13 }}>코드가 복사되었어요!</p>}
 
+        {/* QR 코드 */}
+        <div className="section-label" style={{ marginTop: 20 }}>QR 코드</div>
         <div className="qr-wrap">
           <img src={`/api/groups/${group.invite_code}/qr`} alt="QR코드" />
         </div>
-        <p className="text-muted text-center mb-24" style={{ fontSize: 13 }}>이 QR코드를 공유해보세요!</p>
+        <p className="text-muted text-center" style={{ fontSize: 13, marginBottom: 20 }}>QR 코드를 스캔하면 바로 입장해요</p>
+
+        {/* 초대 링크 */}
+        <div className="section-label">초대 링크</div>
+        <div className="invite-row">
+          <span className="invite-link">{inviteUrl}</span>
+          <button className="copy-btn" onClick={handleCopyLink}>
+            {copiedLink ? '✓' : '📋'}
+          </button>
+        </div>
+        {copiedLink && <p className="text-muted mt-8" style={{ fontSize: 13 }}>링크가 복사되었어요!</p>}
 
         <button
-          className="btn btn-primary btn-full"
+          className="btn btn-primary btn-full mt-24"
           onClick={() => {
             localStorage.setItem('currentChannelId', String(group.group_id));
             navigate(`/channel/${group.group_id}`);

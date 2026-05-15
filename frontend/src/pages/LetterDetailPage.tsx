@@ -67,10 +67,10 @@ export default function LetterDetailPage() {
         ) : letter.status === 'opened' ? (
           <>
             <div className="receiver-card" style={{ marginBottom: 16 }}>
-              <div className="receiver-avatar">❓</div>
+              <div className="receiver-avatar">🐰</div>
               <div>
                 <div className="receiver-label">보낸 사람</div>
-                <div className="receiver-name">익명의 누군가</div>
+                <div className="receiver-name">{letter.sender_username ?? '익명의 누군가'}</div>
               </div>
             </div>
             <div className="letter-content-box">{letter.content}</div>

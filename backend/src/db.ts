@@ -35,16 +35,22 @@ db.exec(`
   );
 
   CREATE TABLE IF NOT EXISTS letter (
-    letter_id   INTEGER PRIMARY KEY AUTOINCREMENT,
-    group_id    INTEGER NOT NULL REFERENCES "group"(group_id),
-    sender_id   INTEGER NOT NULL REFERENCES user(user_id),
-    receiver_id INTEGER NOT NULL REFERENCES user(user_id),
-    content     TEXT    NOT NULL,
-    created_at  TEXT    NOT NULL DEFAULT (datetime('now')),
-    open_at     TEXT    NOT NULL,
-    opened_at   TEXT,
-    status      TEXT    NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'opened'))
+    letter_id    INTEGER PRIMARY KEY AUTOINCREMENT,
+    group_id     INTEGER NOT NULL REFERENCES "group"(group_id),
+    sender_id    INTEGER NOT NULL REFERENCES user(user_id),
+    receiver_id  INTEGER NOT NULL REFERENCES user(user_id),
+    content      TEXT    NOT NULL,
+    is_anonymous INTEGER NOT NULL DEFAULT 1,
+    created_at   TEXT    NOT NULL DEFAULT (datetime('now')),
+    open_at      TEXT    NOT NULL,
+    opened_at    TEXT,
+    status       TEXT    NOT NULL DEFAULT 'pending' CHECK(status IN ('pending', 'opened'))
   );
 `);
+
+// 기존 DB에 is_anonymous 컬럼 없으면 추가
+try {
+  db.exec('ALTER TABLE letter ADD COLUMN is_anonymous INTEGER NOT NULL DEFAULT 1');
+} catch { /* 이미 존재하면 무시 */ }
 
 export default db;

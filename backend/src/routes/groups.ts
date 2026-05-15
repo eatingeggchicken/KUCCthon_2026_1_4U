@@ -1,16 +1,39 @@
-import { Router, Response } from 'express';
+import { Router, Request, Response } from 'express';
 import QRCode from 'qrcode';
 import { authenticate, AuthRequest } from '../middleware/auth';
 import db from '../db';
 
 const router = Router();
 
-router.use(authenticate);
-
 function generateInviteCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   return Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
 }
+
+// GET /api/groups/:invite_code/qr — QR코드 PNG (인증 불필요, 초대코드가 이미 비밀키 역할)
+router.get('/:invite_code/qr', async (req: Request, res: Response) => {
+  const { invite_code } = req.params;
+
+  const group = db
+    .prepare('SELECT * FROM "group" WHERE invite_code = ?')
+    .get(invite_code.toUpperCase()) as { group_name: string } | undefined;
+
+  if (!group) {
+    res.status(404).json({ error: 'Group not found' });
+    return;
+  }
+
+  const BASE_URL = process.env.BASE_URL || `http://localhost:5173`;
+  const joinUrl = `${BASE_URL}/join/${invite_code.toUpperCase()}`;
+
+  const buffer = await QRCode.toBuffer(joinUrl, { width: 300, margin: 2 });
+
+  res.setHeader('Content-Type', 'image/png');
+  res.send(buffer);
+});
+
+// 이하 모든 라우트는 인증 필요
+router.use(authenticate);
 
 // POST /api/groups — 그룹 생성
 router.post('/', (req: AuthRequest, res: Response) => {
@@ -21,7 +44,6 @@ router.post('/', (req: AuthRequest, res: Response) => {
   }
 
   let invite_code = generateInviteCode();
-  // 코드 충돌 시 재생성
   while (db.prepare('SELECT 1 FROM "group" WHERE invite_code = ?').get(invite_code)) {
     invite_code = generateInviteCode();
   }
@@ -30,7 +52,6 @@ router.post('/', (req: AuthRequest, res: Response) => {
     .prepare('INSERT INTO "group" (group_name, invite_code, created_by) VALUES (?, ?, ?)')
     .run(group_name.trim(), invite_code, req.user!.user_id) as { lastInsertRowid: number };
 
-  // 생성자도 멤버로 추가
   db.prepare('INSERT INTO group_member (group_id, user_id) VALUES (?, ?)').run(
     result.lastInsertRowid,
     req.user!.user_id
@@ -65,7 +86,7 @@ router.post('/join', (req: AuthRequest, res: Response) => {
     .get(group.group_id, req.user!.user_id);
 
   if (existing) {
-    res.status(409).json({ error: 'Already a member' });
+    res.status(409).json({ error: 'Already a member', group });
     return;
   }
 
@@ -93,6 +114,37 @@ router.get('/', (req: AuthRequest, res: Response) => {
   res.json(groups);
 });
 
+// GET /api/groups/:group_id — 단일 채널 조회
+router.get('/:group_id', (req: AuthRequest, res: Response) => {
+  const group_id = Number(req.params.group_id);
+  if (isNaN(group_id)) {
+    res.status(400).json({ error: 'Invalid group_id' });
+    return;
+  }
+
+  const isMember = db
+    .prepare('SELECT 1 FROM group_member WHERE group_id = ? AND user_id = ?')
+    .get(group_id, req.user!.user_id);
+  if (!isMember) {
+    res.status(403).json({ error: 'Not a group member' });
+    return;
+  }
+
+  const group = db
+    .prepare(`
+      SELECT g.*, (SELECT COUNT(*) FROM group_member WHERE group_id = g.group_id) as member_count
+      FROM "group" g WHERE g.group_id = ?
+    `)
+    .get(group_id);
+
+  if (!group) {
+    res.status(404).json({ error: 'Group not found' });
+    return;
+  }
+
+  res.json(group);
+});
+
 // GET /api/groups/:group_id/members — 그룹 멤버 목록
 router.get('/:group_id/members', (req: AuthRequest, res: Response) => {
   const group_id = Number(req.params.group_id);
@@ -116,29 +168,6 @@ router.get('/:group_id/members', (req: AuthRequest, res: Response) => {
     .all(group_id);
 
   res.json(members);
-});
-
-// GET /api/groups/:invite_code/qr — QR코드 PNG 다운로드
-router.get('/:invite_code/qr', async (req: AuthRequest, res: Response) => {
-  const { invite_code } = req.params;
-
-  const group = db
-    .prepare('SELECT * FROM "group" WHERE invite_code = ?')
-    .get(invite_code.toUpperCase()) as { group_name: string } | undefined;
-
-  if (!group) {
-    res.status(404).json({ error: 'Group not found' });
-    return;
-  }
-
-  const BASE_URL = process.env.BASE_URL || `http://localhost:${process.env.PORT || 3000}`;
-  const joinUrl = `${BASE_URL}/join/${invite_code.toUpperCase()}`;
-
-  const buffer = await QRCode.toBuffer(joinUrl, { width: 300, margin: 2 });
-
-  res.setHeader('Content-Type', 'image/png');
-  res.setHeader('Content-Disposition', `attachment; filename="invite-${invite_code}.png"`);
-  res.send(buffer);
 });
 
 export default router;

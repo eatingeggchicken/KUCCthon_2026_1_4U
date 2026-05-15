@@ -35,6 +35,9 @@ export const api = {
   getGroups: () =>
     req<Group[]>(`${BASE}/groups`, { headers: headers() }),
 
+  getGroup: (group_id: number) =>
+    req<Group & { error?: string }>(`${BASE}/groups/${group_id}`, { headers: headers() }),
+
   createGroup: (group_name: string) =>
     req<Group & { error?: string }>(`${BASE}/groups`, {
       method: 'POST',
@@ -61,11 +64,11 @@ export const api = {
   getTodayStatus: () =>
     req<TodayStatus>(`${BASE}/letters/today-status`, { headers: headers() }),
 
-  sendLetter: (group_id: number, receiver_id: number, content: string) =>
+  sendLetter: (group_id: number, receiver_id: number, content: string, is_anonymous = true) =>
     req<{ letter_id?: number; error?: string }>(`${BASE}/letters/groups/${group_id}`, {
       method: 'POST',
       headers: headers(),
-      body: JSON.stringify({ receiver_id, content }),
+      body: JSON.stringify({ receiver_id, content, is_anonymous: is_anonymous ? 1 : 0 }),
     }),
 
   openLetter: (letter_id: number) =>
@@ -82,6 +85,8 @@ export interface Letter {
   created_at: string;
   opened_at: string | null;
   status: 'pending' | 'opened';
+  is_anonymous: boolean;
+  sender_username?: string;
 }
 
 export interface OutboxLetter {
@@ -93,6 +98,7 @@ export interface OutboxLetter {
   created_at: string;
   opened_at: string | null;
   status: 'pending' | 'opened';
+  is_anonymous: boolean;
 }
 
 export interface Group {

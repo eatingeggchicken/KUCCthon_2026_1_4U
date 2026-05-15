@@ -75,12 +75,15 @@ export default function InboxPage() {
                   onClick={() => navigate(`/channel/${id}/inbox/${l.letter_id}`, { state: { letter: l, status } })}
                 >
                   <div className="letter-item-row">
-                    <div className={`letter-avatar${l.status === 'pending' ? ' anon' : ''}`}>
-                      {l.status === 'opened' ? '🐰' : '❓'}
+                    <div className={`letter-avatar${!l.sender_username ? ' anon' : ''}`}>
+                      {l.sender_username ? '🐰' : '❓'}
                     </div>
                     <div className="letter-meta">
                       <div className="letter-sender">
-                        {l.status === 'opened' ? '익명의 누군가' : '익명의 누군가'}
+                        {l.sender_username ?? '익명의 누군가'}
+                        {l.sender_username && !l.is_anonymous && (
+                          <span className="badge badge-real" style={{ marginLeft: 6 }}>실명</span>
+                        )}
                       </div>
                       <div className="letter-preview">
                         {l.status === 'opened' && l.content
@@ -93,7 +96,7 @@ export default function InboxPage() {
                       {l.status === 'pending' && <span className="badge badge-new">NEW</span>}
                     </div>
                   </div>
-                  {l.status === 'pending' && status.can_open > 0 && (
+                  {l.status === 'pending' && l.is_anonymous && status.can_open > 0 && (
                     <div style={{ marginTop: 10, paddingLeft: 52 }}>
                       <button
                         className="reveal-btn"
