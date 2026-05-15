@@ -20,6 +20,7 @@ db base = sqlite
 user
 	user_id pk
 	username uniq
+	password_hash
 	created_at
 
 group

@@ -1,0 +1,28 @@
+# dependencies
+node_modules/
+
+# environment variables
+.env
+.env.local
+.env.production
+
+# build output
+dist/
+build/
+.next/
+out/
+
+# database
+backend/data/
+
+# logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
