@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api, Member } from '../api';
 import TopBar from '../components/TopBar';
+import Icon from '../components/Icon';
 
 export default function MembersPage() {
   const { id } = useParams<{ id: string }>();
@@ -32,7 +33,7 @@ export default function MembersPage() {
       <TopBar title="멤버 목록" onBack={true} />
       <div className="subpage-body">
         <div className="search-input-wrap">
-          <span className="search-icon">🔍</span>
+          <span className="search-icon"><Icon name="search" size={15} /></span>
           <input
             className="search-input"
             value={query}
@@ -46,13 +47,13 @@ export default function MembersPage() {
           <div className="text-muted">불러오는 중...</div>
         ) : displayList.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">🔍</div>
+            <div className="empty-icon"><Icon name="search-x" size={48} /></div>
             <div className="empty-text">검색 결과가 없어요</div>
           </div>
         ) : (
           displayList.map(m => (
             <div key={m.user_id} className="member-row">
-              <div className="member-avatar">🐰</div>
+              <div className="member-avatar"><Icon name="rabbit" size={20} /></div>
               <span className="member-name">
                 {m.username}
                 {m.username === myUsername && (

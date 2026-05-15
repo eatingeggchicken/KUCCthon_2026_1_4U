@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api, Letter, OutboxLetter, TodayStatus } from '../api';
 import TopBar from '../components/TopBar';
+import Icon from '../components/Icon';
 
 type MainTab = 'inbox' | 'outbox';
 type SubTab = 'all' | 'pending' | 'opened';
 
 function fmt(d: string) {
-  const date = new Date(d);
+  const date = new Date(d.includes('T') ? d : d.replace(' ', 'T') + 'Z');
   const now = new Date();
   const isToday = date.toDateString() === now.toDateString();
   if (isToday) return date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
@@ -112,7 +113,7 @@ export default function LettersPage() {
 
             {filteredInbox.length === 0 ? (
               <div className="empty-state">
-                <div className="empty-icon">📭</div>
+                <div className="empty-icon"><Icon name="mail-x" size={48} /></div>
                 <div className="empty-text">편지가 없어요</div>
                 <div className="empty-sub">
                   {inboxSubTab === 'pending' ? '미열람 편지가 없어요'
@@ -130,7 +131,7 @@ export default function LettersPage() {
                   >
                     <div className="letter-item-row">
                       <div className={`letter-avatar${l.status === 'pending' ? ' anon' : ' read'}`}>
-                        {l.status === 'opened' ? '🐰' : '❓'}
+                        {l.status === 'opened' ? <Icon name="rabbit" size={20} /> : <Icon name="circle-question-mark" size={20} />}
                       </div>
                       <div className="letter-meta">
                         <div className="letter-sender">
@@ -179,7 +180,7 @@ export default function LettersPage() {
 
             {filteredOutbox.length === 0 ? (
               <div className="empty-state">
-                <div className="empty-icon">📤</div>
+                <div className="empty-icon"><Icon name="mail-warning" size={48} /></div>
                 <div className="empty-text">보낸 편지가 없어요</div>
                 <div className="empty-sub">
                   {outboxSubTab === 'pending' ? '미열람 편지가 없어요'
@@ -192,7 +193,7 @@ export default function LettersPage() {
                 {filteredOutbox.map(l => (
                   <div key={l.letter_id} className="letter-item">
                     <div className="letter-item-row">
-                      <div className="letter-avatar">🐰</div>
+                      <div className="letter-avatar"><Icon name="rabbit" size={20} /></div>
                       <div className="letter-meta">
                         <div className="letter-sender">To. {l.receiver_username}</div>
                         <div className="letter-preview">{l.content}</div>

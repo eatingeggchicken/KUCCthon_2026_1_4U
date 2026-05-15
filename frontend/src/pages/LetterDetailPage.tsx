@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { api, Letter, TodayStatus } from '../api';
 import TopBar from '../components/TopBar';
+import Icon from '../components/Icon';
 
 function fmt(d: string) {
-  return new Date(d).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+  const date = new Date(d.includes('T') ? d : d.replace(' ', 'T') + 'Z');
+  return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
 }
 
 export default function LetterDetailPage() {
@@ -62,14 +64,14 @@ export default function LetterDetailPage() {
           <div className="text-muted">불러오는 중...</div>
         ) : !letter ? (
           <div className="empty-state">
-            <div className="empty-icon">❓</div>
+            <div className="empty-icon"><Icon name="circle-question-mark" size={48} /></div>
             <div className="empty-text">편지를 찾을 수 없어요</div>
           </div>
         ) : letter.status === 'opened' ? (
           <>
             <div className="receiver-card" style={{ marginBottom: 16 }}>
               <div className="receiver-avatar">
-                {letter.sender_username ? '🐰' : '❓'}
+                {letter.sender_username ? <Icon name="rabbit" size={24} /> : <Icon name="circle-question-mark" size={24} />}
               </div>
               <div>
                 <div className="receiver-label">보낸 사람</div>
@@ -85,8 +87,8 @@ export default function LetterDetailPage() {
         ) : (
           <>
             <div style={{ textAlign: 'center', padding: '44px 20px 32px' }}>
-              <div style={{ fontSize: 72, marginBottom: 16 }}>
-                {status.can_open > 0 ? '📩' : '🔒'}
+              <div style={{ fontSize: 72, marginBottom: 16, color: 'var(--accent)' }}>
+                {status.can_open > 0 ? <Icon name="mail-check" size={72} /> : <Icon name="lock-keyhole" size={72} />}
               </div>
               <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>
                 {status.can_open > 0 ? '지금 열 수 있어요!' : '아직 열 수 없어요'}

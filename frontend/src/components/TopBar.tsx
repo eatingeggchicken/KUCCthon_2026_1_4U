@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import Icon from './Icon';
 
 interface Props {
   title: string;
@@ -13,12 +14,10 @@ export default function TopBar({ title, onBack, right }: Props) {
   return (
     <div className="top-bar">
       <div className="top-bar-side">
-        {handleBack ? (
+        {handleBack && (
           <button className="icon-btn" onClick={handleBack} aria-label="뒤로">
-            ←
+            <Icon name="move-left" size={20} />
           </button>
-        ) : (
-          <button className="icon-btn" aria-label="메뉴">☰</button>
         )}
       </div>
       <div className="top-bar-title">{title}</div>

@@ -53,15 +53,5 @@ try {
   db.exec('ALTER TABLE letter ADD COLUMN is_anonymous INTEGER NOT NULL DEFAULT 1');
 } catch { /* 이미 존재하면 무시 */ }
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS diary (
-    diary_id   INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id    INTEGER NOT NULL REFERENCES user(user_id),
-    group_id   INTEGER NOT NULL REFERENCES "group"(group_id),
-    content    TEXT    NOT NULL,
-    mood       TEXT    NOT NULL DEFAULT '😊',
-    created_at TEXT    NOT NULL DEFAULT (datetime('now'))
-  );
-`);
 
 export default db;

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { api, Group, TodayStatus } from '../api';
 import TopBar from '../components/TopBar';
+import Icon from '../components/Icon';
 
 export default function MyInfoPage() {
   const navigate = useNavigate();
@@ -70,7 +71,7 @@ export default function MyInfoPage() {
       <div className="page">
 
         <div className="my-profile">
-          <div className="my-avatar">🐰</div>
+          <div className="my-avatar"><Icon name="rabbit" size={36} /></div>
           <div className="my-username">{username}</div>
           <span className="my-badge">채널 닉네임으로 참여 중</span>
         </div>
@@ -162,7 +163,7 @@ export default function MyInfoPage() {
                   }}
                 >
                   <span>{g.group_name}</span>
-                  <span className="menu-arrow">›</span>
+                  <span className="menu-arrow"><Icon name="chevron-right" size={13} /></span>
                 </button>
               ))}
             </div>

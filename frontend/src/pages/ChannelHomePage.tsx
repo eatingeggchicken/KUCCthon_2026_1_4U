@@ -2,9 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api, Group, Letter, TodayStatus } from '../api';
 import TopBar from '../components/TopBar';
+import Icon from '../components/Icon';
 
 function toDateStr(isoStr: string) {
-  const d = new Date(isoStr);
+  const d = new Date(isoStr.includes('T') ? isoStr : isoStr.replace(' ', 'T') + 'Z');
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
@@ -107,7 +108,7 @@ export default function ChannelHomePage() {
             style={{ position: 'relative' }}
             onClick={() => navigate(`/channel/${id}/letters`)}
           >
-            🔔
+            <Icon name="bell" size={20} />
             {unreadCount > 0 && (
               <span style={{
                 position: 'absolute', top: 4, right: 4,
@@ -124,7 +125,7 @@ export default function ChannelHomePage() {
       <div className="page">
 
         <div className="home-greeting">
-          <div className="home-avatar">🐰</div>
+          <div className="home-avatar"><Icon name="rabbit" size={26} /></div>
           <div className="home-greeting-text">
             <h2>안녕하세요, {username}님! 👋</h2>
             <p>오늘도 감사 가득한 하루 되세요!</p>
@@ -133,7 +134,7 @@ export default function ChannelHomePage() {
 
         {/* 캘린더 섹션 */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-          <span style={{ color: 'var(--accent)', fontSize: 14 }}>🌿</span>
+          <Icon name="leaf" size={14} style={{ color: 'var(--accent)' }} />
           <span style={{ color: 'var(--accent)', fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
             감사 기록
           </span>
@@ -161,15 +162,15 @@ export default function ChannelHomePage() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
             <button
               onClick={() => setCurrentMonth(new Date(year, month - 1, 1))}
-              style={{ width: 32, height: 32, borderRadius: '50%', border: 'none', background: '#EDE8D8', color: 'var(--accent)', cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            >‹</button>
-            <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 18, fontWeight: 600, color: 'var(--text)' }}>
+              style={{ width: 32, height: 32, borderRadius: '50%', border: 'none', background: '#EDE8D8', color: 'var(--accent)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            ><Icon name="chevron-left" size={16} /></button>
+            <span style={{ fontFamily: "'Noto Sans KR', sans-serif", fontSize: 18, fontWeight: 600, color: 'var(--text)' }}>
               {year}년 {month + 1}월
             </span>
             <button
               onClick={() => setCurrentMonth(new Date(year, month + 1, 1))}
-              style={{ width: 32, height: 32, borderRadius: '50%', border: 'none', background: '#EDE8D8', color: 'var(--accent)', cursor: 'pointer', fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-            >›</button>
+              style={{ width: 32, height: 32, borderRadius: '50%', border: 'none', background: '#EDE8D8', color: 'var(--accent)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            ><Icon name="chevron-right" size={16} /></button>
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', marginBottom: 6 }}>
@@ -243,7 +244,7 @@ export default function ChannelHomePage() {
                   >
                     <div className="letter-item-row">
                       <div className={`letter-avatar${l.status === 'opened' ? ' read' : ' anon'}`}>
-                        {l.status === 'opened' ? '🐰' : '❓'}
+                        {l.status === 'opened' ? <Icon name="rabbit" size={20} /> : <Icon name="circle-question-mark" size={20} />}
                       </div>
                       <div className="letter-meta">
                         <div className="letter-sender">

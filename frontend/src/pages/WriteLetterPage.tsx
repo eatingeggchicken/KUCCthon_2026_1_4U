@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { api, Member } from '../api';
 import TopBar from '../components/TopBar';
+import Icon from '../components/Icon';
 
 type Step = 'select' | 'write' | 'done';
 
@@ -91,7 +92,7 @@ export default function WriteLetterPage() {
         <TopBar title="편지 보내기" />
         <div className="subpage-body">
           <div className="search-input-wrap">
-            <span className="search-icon">🔍</span>
+            <span className="search-icon"><Icon name="search" size={15} /></span>
             <input
               className="search-input"
               value={query}
@@ -104,7 +105,7 @@ export default function WriteLetterPage() {
             <div className="text-muted">불러오는 중...</div>
           ) : filteredMembers.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-icon">🔍</div>
+              <div className="empty-icon"><Icon name="search-x" size={48} /></div>
               <div className="empty-text">
                 {query ? '검색 결과가 없어요' : '편지를 보낼 멤버가 없어요'}
               </div>
@@ -112,7 +113,7 @@ export default function WriteLetterPage() {
           ) : (
             filteredMembers.map(m => (
               <div key={m.user_id} className="member-row">
-                <div className="member-avatar">🐰</div>
+                <div className="member-avatar"><Icon name="rabbit" size={20} /></div>
                 <span className="member-name">{m.username}</span>
                 <button className="btn-send-letter" onClick={() => handleSelectMember(m)}>
                   선택
@@ -130,7 +131,7 @@ export default function WriteLetterPage() {
       <div className="subpage-wrap" style={{ minHeight: 'auto' }}>
         <TopBar title="편지 쓰기" />
         <div className="subpage-body" style={{ textAlign: 'center', paddingTop: 60 }}>
-          <div style={{ fontSize: 64, marginBottom: 24 }}>💌</div>
+          <div style={{ fontSize: 64, marginBottom: 24, color: 'var(--accent)' }}><Icon name="mail" size={64} /></div>
           <div style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 700, marginBottom: 12 }}>
             편지가 전달됐어요
           </div>
@@ -156,7 +157,7 @@ export default function WriteLetterPage() {
       />
       <div className="subpage-body">
         <div className="receiver-card">
-          <div className="receiver-avatar">🐰</div>
+          <div className="receiver-avatar"><Icon name="rabbit" size={20} /></div>
           <div>
             <div className="receiver-label">받는 사람</div>
             <div className="receiver-name">{selectedMember?.username ?? '상대방'}</div>
