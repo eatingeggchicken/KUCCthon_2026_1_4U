@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, Navigate } from 'react-router-dom';
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -7,11 +7,7 @@ export default function LandingPage() {
   const [code, setCode] = useState('');
 
   const isLoggedIn = !!localStorage.getItem('token');
-
-  if (isLoggedIn) {
-    navigate('/me', { replace: true });
-    return null;
-  }
+  if (isLoggedIn) return <Navigate to="/me" replace />;
 
   const currentChannelId = localStorage.getItem('currentChannelId');
 
