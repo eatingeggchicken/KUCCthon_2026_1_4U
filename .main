@@ -10,4 +10,40 @@
 
 
 
+고마움 우체통
 
+유저들이 있고 특정 group을 만들어서 url 주면 그 안에서 고마움 편지를 줄 수 있고 random(7~9)일 
+이후에 그 편지를 볼 수 있도록 하는 앱
+
+db base = sqlite
+
+user
+	user_id pk
+	username uniq
+	created_at
+
+group
+	group_id pk
+	group_name
+	invite_code uniq
+	created_by fk -> user.user_id
+	created_at
+
+group_member
+	group_member_id pk
+	group_id fk -> group.group_id
+	user_id fk -> user.user_id
+	joined_at
+
+	uniq(group_id, user_id)
+
+letter
+	letter_id pk
+	group_id fk -> group.group_id
+	sender_id fk -> user.user_id
+	receiver_id fk -> user.user_id
+	content
+	created_at
+	open_at
+	opened_at
+	status
